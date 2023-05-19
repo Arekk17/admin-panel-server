@@ -1,0 +1,164 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DEV_DATABASE_URL")
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  bundle    Bundle   @relation(fields: [bundleId], references: [id])
+  userId    String
+  orderedAt DateTime @default(now())
+  courseId  Int
+  bundleId  Int
+}
+
+model Progress {
+  id        Int    @id @default(autoincrement())
+  user      User   @relation(fields: [userId], references: [id])
+  course    Course @relation(fields: [courseId], references: [id])
+  lessons   Int    @default(0)
+  exercises Int    @default(0)
+  words     Int    @default(0)
+  userId    String
+  courseId  Int
+}
+
+model User {
+  id          String     @id @default(uuid())
+  email       String     @unique
+  password    String
+  name        String?
+  surname     String?
+  phoneNumber Int?
+  phonePrefix Int?
+  joined      DateTime   @default(now())
+  role        Role       @default(USER)
+  orders      Order[]
+  Progress    Progress[]
+}
+
+model Landing {
+  id      Int    @id @default(autoincrement())
+  title   String
+  name    String
+  slug    String @unique
+  content String @db.Text
+}
+
+model Course {
+  id         Int        @id @default(autoincrement())
+  name       String?
+  level      Level      @relation(fields: [levelId], references: [id])
+  bundle     Bundle     @relation(fields: [bundleId], references: [id])
+  language   Language   @relation(fields: [languageId], references: [id])
+  lessons    Lesson[]
+  levelId    Int
+  bundleId   Int
+  languageId Int
+  Order      Order[]
+  Progress   Progress[]
+}
+
+model Level {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  imageUrl    String?
+  description String?
+  courses     Course[]
+}
+
+model Bundle {
+  id      Int      @id @default(autoincrement())
+  name    String
+  content String   @db.Text
+  price   Float    @db.Float
+  courses Course[]
+  Order   Order[]
+}
+
+model Language {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  logo      String
+  courses   Course[]
+  words     Word[]
+  lessons   Lesson[]
+  sentences Sentence[]
+  exercises Exercise[]
+}
+
+model Lesson {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  course     Course?    @relation(fields: [courseId], references: [id])
+  words      Word[]
+  sentences  Sentence[]
+  exercises  Exercise[]
+  courseId   Int?
+  language   Language?  @relation(fields: [languageId], references: [id])
+  languageId Int?
+}
+
+model Word {
+  id            Int        @id @default(autoincrement())
+  original      String     @unique
+  foreign       String
+  pronunciation String
+  audioUrl      String
+  imageUrl      String
+  wordGroup     WORDGROUP?
+  language      Language?  @relation(fields: [languageId], references: [id])
+  lesson        Lesson?    @relation(fields: [lessonId], references: [id])
+  lessonId      Int?
+  languageId    Int?
+}
+
+model Sentence {
+  id            Int       @id @default(autoincrement())
+  original      String    @unique
+  foreign       String
+  pronunciation String
+  audioUrl      String
+  lesson        Lesson?   @relation(fields: [lessonId], references: [id])
+  lessonId      Int?
+  language      Language? @relation(fields: [languageId], references: [id])
+  languageId    Int?
+}
+
+model Exercise {
+  id         Int       @id @default(autoincrement())
+  name       String?
+  lesson     Lesson    @relation(fields: [lessonId], references: [id])
+  lessonId   Int
+  language   Language? @relation(fields: [languageId], references: [id])
+  languageId Int?
+}
+
+enum WORDGROUP {
+  VERB
+  NOUN
+  ADJECTIVE
+  ADVERB
+  PRONOUN
+  ARTICLE
+  PREPOSITION
+  CONJUCTION
+  NUMERAL
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+  TEACHER
+}

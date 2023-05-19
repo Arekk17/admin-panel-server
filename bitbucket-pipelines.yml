@@ -1,0 +1,69 @@
+image: node:16
+
+definitions:
+  caches:
+    npm: $HOME/.npm
+  steps:
+    - step: &build-dev-dependencies
+        name: Build DEV npm dependencies
+        caches:
+          - npm
+        script:
+          - npm install
+          - npm install -g webpack
+          - ENV=DEV npx webpack
+        artifacts: # defining build/ as an artifact
+          - build/**
+    - step: &build-stg-dependencies
+          name: Build STG npm dependencies
+          caches:
+            - npm
+          script:
+            - npm install
+            - npm install -g webpack
+            - ENV=STG npx webpack
+          artifacts: # defining build/ as an artifact
+            - build/**
+    - step: &security-scan
+        name: Security Scan
+        script:
+        # Run a security scan for sensitive data.
+        # See more security tools at https://bitbucket.org/product/features/pipelines/integrations?&category=security
+          - pipe: atlassian/git-secrets-scan:0.5.1
+    - step: &deploy-dev
+        name: Deploy to DEV
+        script:
+          - pipe: atlassian/scp-deploy:0.3.3
+            variables:
+              USER: $VPS_USER
+              SERVER: $VPS_ADDRESS
+              REMOTE_PATH: '/var/www/dev.graphql-server.gralikowski.com'
+              LOCAL_PATH: 'build/*'
+    - step: &deploy-stg
+        name: Deploy to STG
+        trigger: manual
+        script:
+          - pipe: atlassian/scp-deploy:0.3.3
+            variables:
+              USER: $VPS_USER
+              SERVER: $VPS_ADDRESS
+              REMOTE_PATH: '/var/www/stg.graphql-server.gralikowski.com'
+              LOCAL_PATH: 'build/*'
+pipelines:
+  branches:
+    master:
+      - parallel:
+          - step: *build-dev-dependencies
+          - step: *build-stg-dependencies
+          - step: *security-scan
+      - step:
+          <<: *deploy-dev
+          name: Deploy DEV
+          deployment: dev-bejol-com-server
+      - step:
+          <<: *deploy-stg
+          name: Deploy STG
+          deployment: stg-bejol-com-server
+  pull-requests:
+    '**':
+      - step: *security-scan
