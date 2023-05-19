@@ -1,1 +1,1 @@
-export { default } from './delete-lesson'
+export { default } from './delete-lesson';

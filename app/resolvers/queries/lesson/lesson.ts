@@ -5,8 +5,8 @@ const lesson: LessonResolver = async (_, { id }, { prisma }) =>
     where: {
       id,
     },
-    include: { 
-      words: true, 
+    include: {
+      words: true,
       sentences: true,
     },
   });

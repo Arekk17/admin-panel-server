@@ -1,7 +1,7 @@
 import type { EditLessonResolver } from './edit-lesson.types';
 
 const editLesson: EditLessonResolver = async (_, args, { prisma }) => {
-  const { id, name, languageId, courseId, sentenceIds, wordIds } = args
+  const { id, name, languageId, courseId, sentenceIds, wordIds } = args;
   const data: Record<string, any> = {};
   for (const [key, value] of Object.entries({
     id,
@@ -23,7 +23,7 @@ const editLesson: EditLessonResolver = async (_, args, { prisma }) => {
       },
       words: {
         connect: wordIds?.map((id: number) => ({ id })),
-      }
+      },
     },
   });
 

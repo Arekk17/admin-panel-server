@@ -8,26 +8,26 @@ const createLesson: CreateLessonResolver = async (_, args, { prisma }) => {
   if (sentenceIds) {
     dataToCreate.sentences = {
       connect: sentenceIds.map((id: number) => ({ id })),
-    }
+    };
   }
-  if (wordIds){
+  if (wordIds) {
     dataToCreate.words = {
       connect: wordIds.map((id: number) => ({ id })),
-    }
+    };
   }
   if (languageId) {
     dataToCreate.language = {
       connect: {
-        id: languageId
-      }
-    }
+        id: languageId,
+      },
+    };
   }
   if (courseId) {
     dataToCreate.course = {
       connect: {
-        id: courseId
-      }
-    }
+        id: courseId,
+      },
+    };
   }
 
   return prisma.lesson.create({

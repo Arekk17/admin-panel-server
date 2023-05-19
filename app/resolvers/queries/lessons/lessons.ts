@@ -6,8 +6,7 @@ const lessons: LessonsResolver = async (_, __, { prisma }) =>
       sentences: true,
       words: true,
       language: true,
-    }
+    },
   });
-
 
 export default lessons;
